@@ -30,7 +30,8 @@ ADD ./conf /conf
 
 RUN ldconfig
 
-RUN wget https://s3.amazonaws.com/metro-extracts.mapzen.com/trento_italy.osm.pbf
+# Get Data for PA
+RUN wget http://download.geofabrik.de/north-america/us/pennsylvania-latest.osm.pbf
 
 RUN mkdir -p /data/valhalla
 RUN valhalla_build_admins -c conf/valhalla.json *.pbf
@@ -38,6 +39,12 @@ RUN valhalla_build_tiles -c conf/valhalla.json *.pbf
 
 RUN apt-get clean && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
+# Edit max_time for Isochrone to be 600 minutes & max_contours to 10
+RUN sed -i 's/"max_time": 120/"max_time": 600/g' conf/valhalla.json && \
+sed -i 's/"max_contours": 4/"max_contours": 10/g' conf/valhalla.json
+
 
 EXPOSE 8002
 CMD ["tools/valhalla_route_service", "conf/valhalla.json"]
